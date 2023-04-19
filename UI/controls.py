@@ -10,7 +10,6 @@ SCHEME_SEL_PIN = 4
 
 SCHEME_EDIT_LED_PIN = 20
 
-"""
 board = Arduino('COM3')
 
 MODE_SEL = board.digital[MODE_SEL_PIN]
@@ -27,7 +26,6 @@ SCHEME_SEL.mode = pyfirmata.INPUT
 
 iterator = util.Iterator(board)#This might go in main
 iterator.start() #Might go in main????
-"""
 
 #Class object to represent the set of controls on this device
 class Controls():
@@ -39,7 +37,10 @@ class Controls():
     def check_mode_switch(self):
         print("Checking mode switch")
 
-        val = input("Mode 0 or 1? ")
+        #Read in the MODE_SEL Switch value
+        val = MODE_SEL.read()
+
+        print("MODE_SEL Switch reads as " + str(val))
 
         try:
             return int(val) #Will eventually return 0 for manual and 1 for automatic
