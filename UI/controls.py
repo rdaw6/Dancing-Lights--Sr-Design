@@ -36,6 +36,18 @@ class Controls():
     def __init__(self, device):
         self.device = device
 
+    def check_mode_switch(self):
+        print("Checking mode switch")
+
+        val = input("Mode 0 or 1? ")
+
+        try:
+            return int(val) #Will eventually return 0 for manual and 1 for automatic
+
+        except:
+            print("invalid input...returning 0")
+            return 0
+
     def check_bright_ctrl(self):
         val = input("Brightness value 1 to 5: ")
         return int(val)

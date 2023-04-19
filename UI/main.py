@@ -14,7 +14,7 @@ def main():
 
         #Check the mode toggle switch
         #Let's say 0 is manual and 1 is automatic
-        if device.check_mode_switch() == 0:
+        if device.controls.check_mode_switch() == 0:
             
             #Should be in manual mode
             if device.mode.mode == 'A':
