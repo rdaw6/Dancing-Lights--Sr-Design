@@ -2,6 +2,7 @@
 import csv
 import states
 import controls
+import time
 
 #import necessary libraries
 import pyfirmata
@@ -11,10 +12,12 @@ def main():
     device = states.Device()
 
     while True:
+        #Run loop at 100Hz
+        time.sleep(0.01)
 
         #Check the mode toggle switch
         #Let's say 0 is manual and 1 is automatic
-        if device.check_mode_switch() == 0:
+        if device.controls.check_mode_switch() == 0:
             
             #Should be in manual mode
             if device.mode.mode == 'A':

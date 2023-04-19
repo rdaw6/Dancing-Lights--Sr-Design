@@ -183,18 +183,7 @@ class Device:
         self.scheme = int(var_list[3][0])
         
         f.close()
-
-    def check_mode_switch(self):
-        print("Checking mode switch")
-
-        val = input("Mode 0 or 1? ")
-
-        try:
-            return int(val) #Will eventually return 0 for manual and 1 for automatic
-
-        except:
-            print("invalid input...returning 0")
-            return 0
+        
 
     """method for toggling mode switch"""
     def toggle_mode(self):
