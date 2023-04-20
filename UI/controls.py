@@ -37,6 +37,27 @@ class Controls():
     """Constructor"""
     def __init__(self, device):
         self.device = device
+        self.macro_pb_prev_state = 0
+
+    def check_macro_sel_pb(self):
+        # Get button current state
+        button_state = MACRO_SEL.read()
+        
+        # Check if button has been released
+        if((button_state != None) and (self.macro_pb_prev_state != None) and (button_state != self.macro_pb_prev_state)):
+            
+            if button_state == 0:
+                
+                print("Button released")
+                self.macro_pb_prev_state = button_state
+                return True
+            
+        self.macro_pb_prev_state = button_state
+        return False
+            
+        # Save current button state as previous
+        # for the next loop iteration
+        previous_button_state = button_state
 
     def check_mode_switch(self):
         print("Checking mode switch")

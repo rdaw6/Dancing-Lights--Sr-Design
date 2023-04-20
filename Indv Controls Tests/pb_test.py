@@ -21,14 +21,12 @@ if __name__ == '__main__':
 
     # The "void loop()"
     while True:
-        # We run the loop at 100Hz
-        time.sleep(0.01)
         
         # Get button current state
         button_state = button.read()
         
         # Check if button has been released
-        if button_state != previous_button_state:
+        if((button_state != None) and (previous_button_state != None) and (button_state != previous_button_state)):
             if button_state == 0:
                 print("Button released")
             
