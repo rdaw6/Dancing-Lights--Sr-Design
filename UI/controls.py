@@ -1,4 +1,5 @@
 import pyfirmata
+from pyfirmata import Arduino, util
 import states
 
 #declare pins
@@ -43,11 +44,11 @@ class Controls():
         print("MODE_SEL Switch reads as " + str(val))
 
         try:
-            return int(val) #Will eventually return 0 for manual and 1 for automatic
+            return int(val) #Will eventually return 1 for manual and 1 for automatic
 
         except:
             print("invalid input...returning 0")
-            return 0
+            return 1
 
     def check_bright_ctrl(self):
         val = input("Brightness value 1 to 5: ")

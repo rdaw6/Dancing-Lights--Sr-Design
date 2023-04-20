@@ -1,5 +1,7 @@
+import pyfirmata
 from pyfirmata import Arduino, util
 import time
+import math
 
 board = Arduino('COM3')
 
@@ -22,7 +24,7 @@ try:
         if(val == 0):
             val = 1
 
-        val = ceil(val)
+        val = math.ceil(val)
         
         print(str(val))
 
