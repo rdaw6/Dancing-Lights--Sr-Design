@@ -13,7 +13,7 @@ def main():
 
     while True:
         #Run loop at 100Hz
-        time.sleep(0.01)
+        time.sleep(0.1)
 
         #Check the mode toggle switch
         #Let's say 1 is manual and 0 is automatic
@@ -24,7 +24,6 @@ def main():
                 device.toggle_mode()
 
         else:
-            
             #Should be in automatic mode
             if device.mode.mode != 'A':
                 device.toggle_mode()
@@ -35,6 +34,7 @@ def main():
 
             """Check MS, AS, BC, SC, SS, SE"""
             device.mode.check_controls()
+            time.sleep(0.1)
             
         elif device.mode.mode == "E":
 
@@ -45,17 +45,6 @@ def main():
 
             """Check MS"""
             print("Automatic mode")
-
-        #Print the controls from csv
-        print("Printing CSV vals")
-        device.print_csv_vals()
-
-        #Print the controls from variables
-        print("Printing variables vals")
-        print(device.macro)
-        print(device.brightness)
-        print(device.speed)
-        print(device.scheme)
 
 
 if __name__ == '__main__':

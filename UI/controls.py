@@ -2,12 +2,17 @@ import pyfirmata
 from pyfirmata import Arduino, util
 import states
 import math
+import time
 
 #declare pins
 MODE_SEL_PIN = 7
 MACRO_SEL_PIN = 8
+
 #BRIGHT_CTRL_PIN = 11
+BRIGHT_CTRL_PIN = 0
 #SPEED_CTRL_PIN = 12
+SPEED_CTRL_PIN = 1
+
 SCHEME_SEL_PIN = 4
 SCHEME_EDIT_PIN = 5
 
@@ -17,10 +22,10 @@ board = Arduino('COM3')
 
 MODE_SEL = board.digital[MODE_SEL_PIN]
 MACRO_SEL = board.digital[MACRO_SEL_PIN]
-#BRIGHT_CTRL = board.digital[BRIGHT_CTRL_PIN]
-BRIGHT_CTRL = board.get_pin('a:0:i')
-#SPEED_CTRL = board.digital[SPEED_CTRL_PIN]
-SPEED_CTRL = board.get_pin('a:1:i')
+BRIGHT_CTRL = board.analog[BRIGHT_CTRL_PIN]
+#BRIGHT_CTRL = board.get_pin('a:0:i')
+SPEED_CTRL = board.analog[SPEED_CTRL_PIN]
+#SPEED_CTRL = board.get_pin('a:1:i')
 SCHEME_SEL = board.digital[SCHEME_SEL_PIN]
 SCHEME_EDIT = board.digital[SCHEME_EDIT_PIN]
 
@@ -32,13 +37,15 @@ SCHEME_SEL.mode = pyfirmata.INPUT
 SCHEME_EDIT.mode = pyfirmata.INPUT
 
 iterator = util.Iterator(board)
-iterator.start() 
+iterator.start()
+time.sleep(3)
 
 #Class object to represent the set of controls on this device
 class Controls():
 
     """Constructor"""
     def __init__(self, device):
+
         self.device = device
         self.macro_pb_prev_state = 0
         self.scheme_sel_pb_prev_state = 0
@@ -62,12 +69,12 @@ class Controls():
         return False
 
     def check_mode_switch(self):
-        print("Checking mode switch")
+        #print("Checking mode switch")
 
         #Read in the MODE_SEL Switch value
         val = MODE_SEL.read()
 
-        print("MODE_SEL Switch reads as " + str(val))
+        #print("MODE_SEL Switch reads as " + str(val))
 
         try:
             return int(val) #Will eventually return 1 for manual and 1 for automatic
@@ -77,6 +84,7 @@ class Controls():
             return 1
 
     def check_bright_ctrl(self):
+        BRIGHT_CTRL.enable_reporting()
         val = BRIGHT_CTRL.read()
 
         if(val == None):
@@ -92,6 +100,7 @@ class Controls():
         return val
 
     def check_speed_ctrl(self):
+        SPEED_CTRL.enable_reporting()
         val = SPEED_CTRL.read()
 
         if(val == None):
@@ -115,7 +124,6 @@ class Controls():
             
             if button_state == 0:
                 
-                print("Button released")
                 self.scheme_sel_pb_prev_state = button_state
                 return True
             
@@ -131,7 +139,6 @@ class Controls():
             
             if button_state == 0:
                 
-                print("Button released")
                 self.scheme_edit_pb_prev_state = button_state
                 return True
             

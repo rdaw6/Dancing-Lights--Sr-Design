@@ -1,5 +1,6 @@
 import csv
 import controls
+import time
 
 """CSV = (0)MACRO_SEL,(1)BRIGHT_CTRL,(2)SPEED_CTRL,(3)SCHEME_SEL,(4)COLOR_SEL"""
 MACRO_INDEX = 0
@@ -10,6 +11,7 @@ SCHEME_INDEX = 3
 SCHEME_EDIT_LED_PIN = 20
 
 NUM_MACROS = 4
+NUM_SCHEMES = 2
 
 csv_filename = "variables.csv"
 
@@ -62,29 +64,24 @@ class ManMode(Mode):
                 self.device.vars[MACRO_INDEX] = 1
                 self.device.update_csv(MACRO_INDEX,1)
                 self.device.macro = 1
-            print("Macro number changed")
+            #print("Macro number changed")
                 
         
         #check brightness control (should return int between 1 and 5)
         brt_val = self.device.controls.check_bright_ctrl()
 
-        print("brt_val = " + str(brt_val))
-        print("self.device.brightness = " + str(self.device.brightness))
-
         if((brt_val != 0) and (brt_val != int(self.device.brightness))):
-            print("New brightness value!")
             self.device.vars[BRIGHT_INDEX] = brt_val
             self.device.update_csv(BRIGHT_INDEX,brt_val)
             self.device.brightness = brt_val
 
+        time.sleep(0.1)
+
         #check speed control (should return int between 1 and 10)
         speed_val = self.device.controls.check_speed_ctrl()
 
-        print("speed_val = " + str(speed_val))
-        print("self.device.speed = " + str(self.device.speed))
-
         if((speed_val != 0) and (speed_val != int(self.device.speed))):
-            print("New speed value!")
+            #print("New speed value!")
             self.device.vars[SPEED_INDEX] = speed_val
             self.device.update_csv(SPEED_INDEX,speed_val)
             self.device.speed = speed_val
@@ -95,14 +92,13 @@ class ManMode(Mode):
             if(self.device.scheme < NUM_SCHEMES):
                 new_val = self.device.scheme + 1
                 self.device.vars[SCHEME_INDEX] = new_val
-                self.device.update_csv(SHCEME_INDEX,new_val)
+                self.device.update_csv(SCHEME_INDEX,new_val)
                 self.device.scheme = new_val
             else:
                 #Loops back to beginning of macro "list"
                 self.device.vars[SCHEME_INDEX] = 1
                 self.device.update_csv(SCHEME_INDEX,1)
                 self.device.scheme = 1
-            print("Scheme number changed")
 
         #Check edit mode pb
         if(self.device.controls.check_edit_mode_pb()):
@@ -138,7 +134,7 @@ class SchemeEditMode(ManMode):
         self.device.mode = self.device.automode
 
     def check_controls(self):
-        print("Check scheme select button")
+        #print("Check scheme select button")
         if(self.device.controls.check_edit_mode_pb()):
             self.toggle_seMode()
         
@@ -215,15 +211,14 @@ class Device:
     # param[in]  val      new val or var
     #
     def update_csv(self,spot,val):
-        print("Update CSV called")
+        #print("Update CSV called")
+        print("New values:")
+        print("Macro #: " + str(self.vars[MACRO_INDEX]))
+        print("Brightness: " + str(self.vars[BRIGHT_INDEX]))
+        print("Speed: " + str(self.vars[SPEED_INDEX]))
+        print("Scheme #: " + str(self.vars[SCHEME_INDEX]))
 
-        print("Val from vars is: " + str(val))
-
-        """f = open(csv_filename,'w') #Read in CSV file
-        w = csv.writer(f)
-        w.writerows(self.vars)"""
-
-        
+        #print("Val from vars is: " + str(val))    
 
         with open(csv_filename,'w',newline='') as f:
             w = csv.writer(f, delimiter=' ')
