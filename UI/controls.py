@@ -59,7 +59,7 @@ class Controls():
         if(val == None):
             return 0
 
-        val = val*10
+        val = val*5
 
         if(val == 0):
             val = 1
@@ -68,11 +68,20 @@ class Controls():
         
         return val
 
-        time.sleep(0.1)
-
     def check_speed_ctrl(self):
-        val = input("Speed value 1 to 10: ")
-        return int(val)
+        val = SPEED_CTRL.read()
+
+        if(val == None):
+            return 0
+
+        val = val*10
+
+        if(val == 0):
+            val = 1
+
+        val = math.ceil(val)
+        
+        return val
 
     def check_edit_mode_pb(self):
         val = input("Edit Mode? y=1 or n=0: ")

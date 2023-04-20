@@ -68,7 +68,7 @@ class ManMode(Mode):
         print("speed_val = " + str(speed_val))
         print("self.device.speed = " + str(self.device.speed))
 
-        if(speed_val != int(self.device.speed)):
+        if((speed_val != 0) and (speed_val != int(self.device.speed))):
             print("New speed value!")
             self.device.vars[SPEED_INDEX] = speed_val
             self.device.update_csv(SPEED_INDEX,speed_val)
