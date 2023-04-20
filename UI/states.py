@@ -9,6 +9,8 @@ SCHEME_INDEX = 3
 
 SCHEME_EDIT_LED_PIN = 20
 
+NUM_MACROS = 4
+
 csv_filename = "variables.csv"
 
 class Mode:
@@ -48,7 +50,20 @@ class ManMode(Mode):
         #Mode select switch is checked in main (for all modes)
 
         #Check macro select button
-        print("Checking macro select button")
+        if(self.device.controls.check_macro_sel_pb()):
+            #Button has been released
+            if(self.device.macro < NUM_MACROS):
+                new_val = self.device.macro + 1
+                self.device.vars[MACRO_INDEX] = new_val
+                self.device.update_csv(MACRO_INDEX,new_val)
+                self.device.macro = new_val
+            else:
+                #Loops back to beginning of macro "list"
+                self.device.vars[MACRO_INDEX] = 1
+                self.device.update_csv(MACRO_INDEX,1)
+                self.device.macro = 1
+            print("Macro number changed")
+                
         
         #check brightness control (should return int between 1 and 5)
         brt_val = self.device.controls.check_bright_ctrl()
