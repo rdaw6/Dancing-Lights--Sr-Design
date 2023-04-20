@@ -5,7 +5,9 @@ import math
 
 board = Arduino('COM3')
 
-pin = board.get_pin('a:0:i')            #analog pin 0 input
+#pin = board.get_pin('a:0:i')            #analog pin 0 input
+
+control = board.analog[1]
 
 iterator = util.Iterator(board)
 iterator.start()
@@ -13,8 +15,8 @@ time.sleep(0.1)
 
 try:
     while True:
-
-        val = pin.read()
+        control.enable_reporting()
+        val = control.read()
 
         if(val == None):
             continue
