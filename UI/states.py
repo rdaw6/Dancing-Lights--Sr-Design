@@ -56,7 +56,7 @@ class ManMode(Mode):
         print("brt_val = " + str(brt_val))
         print("self.device.brightness = " + str(self.device.brightness))
 
-        if(brt_val != int(self.device.brightness)):
+        if((brt_val != 0) and (brt_val != int(self.device.brightness))):
             print("New brightness value!")
             self.device.vars[BRIGHT_INDEX] = brt_val
             self.device.update_csv(BRIGHT_INDEX,brt_val)
