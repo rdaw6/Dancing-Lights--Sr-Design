@@ -90,17 +90,22 @@ class ManMode(Mode):
             self.device.speed = speed_val
 
         #Check scheme select button
-        print("Check scheme select button")
+        if(self.device.controls.check_scheme_sel_pb()):
+            #Button has been released
+            if(self.device.scheme < NUM_SCHEMES):
+                new_val = self.device.scheme + 1
+                self.device.vars[SCHEME_INDEX] = new_val
+                self.device.update_csv(SHCEME_INDEX,new_val)
+                self.device.scheme = new_val
+            else:
+                #Loops back to beginning of macro "list"
+                self.device.vars[SCHEME_INDEX] = 1
+                self.device.update_csv(SCHEME_INDEX,1)
+                self.device.scheme = 1
+            print("Scheme number changed")
 
-        """val = self.device.controls.check_edit_mode_pb()
-        if val != 0:
-            self.toggle_seMode()"""
-
-        #Check scheme edit button
-        print("Check scheme edit mode button")
-
-        val = self.device.controls.check_edit_mode_pb()
-        if val != 0:
+        #Check edit mode pb
+        if(self.device.controls.check_edit_mode_pb()):
             self.toggle_seMode()
 
 
@@ -134,9 +139,7 @@ class SchemeEditMode(ManMode):
 
     def check_controls(self):
         print("Check scheme select button")
-
-        val = self.device.controls.check_edit_mode_pb()
-        if val != 0:
+        if(self.device.controls.check_edit_mode_pb()):
             self.toggle_seMode()
         
 
