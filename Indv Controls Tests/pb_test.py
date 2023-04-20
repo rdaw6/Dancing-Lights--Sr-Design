@@ -6,6 +6,8 @@ import time
 if __name__ == '__main__':
     # Initiate communication with Arduino
     board = pyfirmata.Arduino('COM3')
+
+    button = board.digital[8]
     
     previous_button_state = 0
     
