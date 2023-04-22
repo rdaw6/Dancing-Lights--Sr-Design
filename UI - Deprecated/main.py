@@ -34,6 +34,7 @@ def main():
 
             """Check MS, AS, BC, SC, SS, SE"""
             device.mode.check_controls()
+            time.sleep(0.1)
             
         elif device.mode.mode == "E":
 

@@ -7,16 +7,11 @@ MACRO_INDEX = 0
 BRIGHT_INDEX = 1
 SPEED_INDEX = 2
 SCHEME_INDEX = 3
-SCHEME_COLORS_INDEX = 4 #Index of the first scheme's list of colors
 
 SCHEME_EDIT_LED_PIN = 20
 
 NUM_MACROS = 4
-NUM_SCHEMES = 4
-NUM_COL_PER_SCHEME = 4
-
-#Number of colors options available when editing color in scheme
-NUM_COLOR_OPTS = 6 
+NUM_SCHEMES = 2
 
 csv_filename = "variables.csv"
 
@@ -118,7 +113,6 @@ class SchemeEditMode(ManMode):
         
         self.device = device
         self.mode = 'E'
-        self.on_color = 0
 
     def toggle_seMode(self):
         
@@ -126,13 +120,6 @@ class SchemeEditMode(ManMode):
 
         #Switching edit mode back to normal manual mode so turn off led
         self.device.controls.led_off(SCHEME_EDIT_LED_PIN)
-
-        #Set pb prev states to zero in case it was pressed during mode switch
-        self.device.controls.next_color_pb_prev_state = 0
-        self.device.controls.change_color_pb_prev_state = 0
-
-        #Set on color back to zero so when we re-enter edit mode we can start back at beginning
-        self.on_color = 0
 
         #Go to manual mode
         self.device.mode = self.device.manmode
@@ -147,55 +134,30 @@ class SchemeEditMode(ManMode):
         self.device.mode = self.device.automode
 
     def check_controls(self):
-        #print("Checking edit mode controls")
+        print("Checking edit mode controls")
         
         #print("Check scheme select button")
         if(self.device.controls.check_edit_mode_pb()):
             self.toggle_seMode()
 
-        #check color number button
-        if(self.device.controls.check_next_color_pb()):
-            #Make sure we're not going out of range of num colors in scheme
-            #subtract once since our first color indexes at 0
-            print("Edit next color in scheme")
-            if(self.on_color < (NUM_COL_PER_SCHEME)):
-                self.on_color += 1
-            else:
-                #Loop back to beginning of list
-                self.on_color = 0 #on_color indexes from 0
-                
+        #Check rgb 
+        r_ctrl = controls.RotaryEnc(controls.r_dt,controls.r_clk)
+        g_ctrl = controls.RotaryEnc(controls.g_dt,controls.g_clk)
+        b_ctrl = controls.RotaryEnc(controls.b_dt,controls.b_clk)
 
-        #check color selection button
-        if(self.device.controls.check_change_color_pb()):
-            print("Color #: " + str(self.on_color))
-        #Button has been released
-            print("Change to next color options")
-
-            curr_scheme = self.device.scheme
-            if(int(self.device.scheme_colors[curr_scheme-1][self.on_color]) < (NUM_COLOR_OPTS - 1)):
-                #Replace color with next option
-                self.device.vars[SCHEME_COLORS_INDEX + self.device.scheme - 1][self.on_color] += 1
-                self.device.update_csv(SCHEME_COLORS_INDEX + self.device.scheme - 1,0)
-                self.device.scheme_colors[curr_scheme-1][self.on_color] += 1
-                
-            else:
-                #Replace color in scheme with first option
-                self.device.vars[SCHEME_COLORS_INDEX + self.device.scheme - 1][self.on_color] = 0
-                self.device.update_csv(SCHEME_COLORS_INDEX + self.device.scheme - 1,0)
-                self.device.scheme_colors[curr_scheme-1][self.on_color] = 0
-
-
-                
-            """if(self.device.scheme < NUM_SCHEMES):
-                new_val = self.device.scheme + 1
-                self.device.vars[SCHEME_INDEX] = new_val
-                self.device.update_csv(SCHEME_INDEX,new_val)
-                self.device.scheme = new_val
-            else:
-                #Loops back to beginning of macro "list"
-                self.device.vars[SCHEME_INDEX] = 1
-                self.device.update_csv(SCHEME_INDEX,1)
-                self.device.scheme = 1"""
+        while True:
+            if(self.device.controls.check_edit_mode_pb()):
+                self.toggle_seMode()
+                break
+            if(not self.device.controls.check_mode_switch()):
+                #switch to automatic mode
+                self.toggle_mode()
+                break
+            r_ctrl.check_val()
+            g_ctrl.check_val()
+            b_ctrl.check_val()
+            time.sleep(0.1)
+        
 
 """Class for automatic/audio mode of device"""
 class AutoMode(Mode):
@@ -241,38 +203,18 @@ class Device:
             var_list = list(r)
             i=0
             for line in var_list:
-                if(i < SCHEME_COLORS_INDEX):
-                    var_list[i] = int(line[0])
-                else:
-                    var_list[i] = line
+                var_list[i] = line[0]
                 i+=1
-
-        j=0
-        while(j<NUM_SCHEMES):
-            k=0
-            while(k<NUM_COL_PER_SCHEME):
-                var_list[SCHEME_COLORS_INDEX+j][k] = int(var_list[SCHEME_COLORS_INDEX+j][k])
-                k+=1
-            j+=1
         
         print("Var list after init: ")
         print(var_list)
 
         self.vars = var_list
         
-        self.macro = var_list[MACRO_INDEX]
-        self.brightness = var_list[BRIGHT_INDEX]
-        self.speed = var_list[SPEED_INDEX]
-        self.scheme = var_list[SCHEME_INDEX]
-
-        self.scheme_colors = [var_list[SCHEME_COLORS_INDEX]]
-        
-        index = 1
-        while(index < NUM_SCHEMES):
-            self.scheme_colors.append(var_list[SCHEME_COLORS_INDEX + index])
-            index += 1
-
-        print(self.scheme_colors)
+        self.macro = int(var_list[0][0])
+        self.brightness = int(var_list[1][0])
+        self.speed = int(var_list[2][0])
+        self.scheme = int(var_list[3][0])
         
         f.close()
         
@@ -296,10 +238,7 @@ class Device:
         print("Speed: " + str(self.vars[SPEED_INDEX]))
         print("Scheme #: " + str(self.vars[SCHEME_INDEX]))
 
-        """i = 0
-        while(i < NUM_SCHEMES):"""
-            
-
+        #print("Val from vars is: " + str(val))    
 
         with open(csv_filename,'w',newline='') as f:
             w = csv.writer(f, delimiter=' ')
