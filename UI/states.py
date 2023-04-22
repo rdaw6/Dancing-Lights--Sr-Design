@@ -175,19 +175,19 @@ class SchemeEditMode(ManMode):
 
             curr_scheme = self.device.scheme
             print("Current Scheme: " + str(curr_scheme))
-            curr_color_as_int = int(self.device.scheme_colors[curr_scheme][self.on_color])
+            curr_color = self.device.scheme_colors[curr_scheme][self.on_color]
             #if(int(self.device.scheme_colors[curr_scheme-1][self.on_color]) < (NUM_COLOR_OPTS - 1)):
-            if(curr_color_as_int < (NUM_COLOR_OPTS - 1)):
+            if(curr_color < (NUM_COLOR_OPTS - 1)):
                 #Replace color with next option
-                self.device.vars[SCHEME_COLORS_INDEX + self.device.scheme][self.on_color] = str(curr_color_as_int + 1)
+                self.device.vars[SCHEME_COLORS_INDEX + self.device.scheme][self.on_color] = curr_color + 1
                 self.device.update_csv(SCHEME_COLORS_INDEX + self.device.scheme)
-                self.device.scheme_colors[curr_scheme][self.on_color] = str(curr_color_as_int + 1)
+                self.device.scheme_colors[curr_scheme][self.on_color] = curr_color + 1
                 
             else:
                 #Replace color in scheme with first option
-                self.device.vars[SCHEME_COLORS_INDEX + self.device.scheme][self.on_color] = str(0)
+                self.device.vars[SCHEME_COLORS_INDEX + self.device.scheme][self.on_color] = 0
                 self.device.update_csv(SCHEME_COLORS_INDEX + self.device.scheme)
-                self.device.scheme_colors[curr_scheme][self.on_color] = str(0)
+                self.device.scheme_colors[curr_scheme][self.on_color] = 0
 
 """Class for automatic/audio mode of device"""
 class AutoMode(Mode):
@@ -243,8 +243,8 @@ class Device:
         while(j<NUM_SCHEMES):
             k=0
             while(k<NUM_COL_PER_SCHEME):
-                #var_list[SCHEME_COLORS_INDEX+j][k] = int(var_list[SCHEME_COLORS_INDEX+j][k])
-                var_list[SCHEME_COLORS_INDEX+j][k] = str(var_list[SCHEME_COLORS_INDEX+j][k])
+                var_list[SCHEME_COLORS_INDEX+j][k] = int(var_list[SCHEME_COLORS_INDEX+j][k])
+                #var_list[SCHEME_COLORS_INDEX+j][k] = str(var_list[SCHEME_COLORS_INDEX+j][k])
 
                 k+=1
             j+=1
@@ -301,12 +301,6 @@ class Device:
             try:
                 with open(csv_filename,'w',newline='') as f:
                     w = csv.writer(f)
-
-                    """for item in self.vars:
-                        try:
-                            w.writerow(item.split(" ,"))
-                        except:
-                            w.writerow([item])"""
 
                     i = 0
                     while(i < SCHEME_COLORS_INDEX + NUM_SCHEMES):
