@@ -1,3 +1,7 @@
+#Loosely based on code found at
+#   https://forum.arduino.cc/t/using-a-rotary-encoder-simple-tutorial/252331/4
+# in comment by StefanL38
+
 import pyfirmata
 from pyfirmata import Arduino, util
 import time
