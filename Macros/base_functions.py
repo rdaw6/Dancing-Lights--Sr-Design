@@ -1,6 +1,7 @@
 import time
 import math
 import variables as v
+from importlib import reload
 
 
 def fade(lights, num_loops): #array of universes (strings of lights) and number of times to loop thru pattern
@@ -10,16 +11,19 @@ def fade(lights, num_loops): #array of universes (strings of lights) and number 
             for n in range(0, len(lights)):
                 lights[n].dmx_data = t*v.pixel_num[n]
             time.sleep(v.speed)
+            print(v.Brightness)
         for x in range(52):
             t = ((51-x) * v.Brightness, 51 * v.Brightness, 0)
             for n in range(0, len(lights)):
                 lights[n].dmx_data = t*v.pixel_num[n]
             time.sleep(v.speed)
+            
         for x in range(52):
             t = (0, 51 * v.Brightness, x * v.Brightness)
             for n in range(0, len(lights)):
                 lights[n].dmx_data = t*v.pixel_num[n]
             time.sleep(v.speed)
+
         for x in range(52):
             t = (0, (51-x) * v.Brightness, 51* v.Brightness)
             for n in range(0, len(lights)):
