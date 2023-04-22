@@ -62,12 +62,12 @@ class ManMode(Mode):
             if(self.device.macro < NUM_MACROS):
                 new_val = self.device.macro + 1
                 self.device.vars[MACRO_INDEX] = new_val
-                self.device.update_csv(MACRO_INDEX,new_val)
+                self.device.update_csv(MACRO_INDEX)
                 self.device.macro = new_val
             else:
                 #Loops back to beginning of macro "list"
                 self.device.vars[MACRO_INDEX] = 1
-                self.device.update_csv(MACRO_INDEX,1)
+                self.device.update_csv(MACRO_INDEX)
                 self.device.macro = 1
             #print("Macro number changed")
                 
@@ -77,7 +77,7 @@ class ManMode(Mode):
 
         if((brt_val != 0) and (brt_val != int(self.device.brightness))):
             self.device.vars[BRIGHT_INDEX] = brt_val
-            self.device.update_csv(BRIGHT_INDEX,brt_val)
+            self.device.update_csv(BRIGHT_INDEX)
             self.device.brightness = brt_val
 
         time.sleep(0.1)
@@ -88,22 +88,23 @@ class ManMode(Mode):
         if((speed_val != 0) and (speed_val != int(self.device.speed))):
             #print("New speed value!")
             self.device.vars[SPEED_INDEX] = speed_val
-            self.device.update_csv(SPEED_INDEX,speed_val)
+            self.device.update_csv(SPEED_INDEX)
             self.device.speed = speed_val
 
         #Check scheme select button
         if(self.device.controls.check_scheme_sel_pb()):
+            print("Editing scheme number")
             #Button has been released
-            if(self.device.scheme < NUM_SCHEMES):
+            if(self.device.scheme < NUM_SCHEMES - 1):
                 new_val = self.device.scheme + 1
                 self.device.vars[SCHEME_INDEX] = new_val
-                self.device.update_csv(SCHEME_INDEX,new_val)
+                self.device.update_csv(SCHEME_INDEX)
                 self.device.scheme = new_val
             else:
                 #Loops back to beginning of macro "list"
-                self.device.vars[SCHEME_INDEX] = 1
-                self.device.update_csv(SCHEME_INDEX,1)
-                self.device.scheme = 1
+                self.device.vars[SCHEME_INDEX] = 0
+                self.device.update_csv(SCHEME_INDEX)
+                self.device.scheme = 0
 
         #Check edit mode pb
         if(self.device.controls.check_edit_mode_pb()):
@@ -158,7 +159,7 @@ class SchemeEditMode(ManMode):
             #Make sure we're not going out of range of num colors in scheme
             #subtract once since our first color indexes at 0
             print("Edit next color in scheme")
-            if(self.on_color < (NUM_COL_PER_SCHEME)):
+            if(self.on_color < (NUM_COL_PER_SCHEME - 1)):
                 self.on_color += 1
             else:
                 #Loop back to beginning of list
@@ -167,35 +168,26 @@ class SchemeEditMode(ManMode):
 
         #check color selection button
         if(self.device.controls.check_change_color_pb()):
+            print("Changing a color")
             print("Color #: " + str(self.on_color))
-        #Button has been released
+            #Button has been released
             print("Change to next color options")
 
             curr_scheme = self.device.scheme
-            if(int(self.device.scheme_colors[curr_scheme-1][self.on_color]) < (NUM_COLOR_OPTS - 1)):
+            print("Current Scheme: " + str(curr_scheme))
+            curr_color_as_int = int(self.device.scheme_colors[curr_scheme][self.on_color])
+            #if(int(self.device.scheme_colors[curr_scheme-1][self.on_color]) < (NUM_COLOR_OPTS - 1)):
+            if(curr_color_as_int < (NUM_COLOR_OPTS - 1)):
                 #Replace color with next option
-                self.device.vars[SCHEME_COLORS_INDEX + self.device.scheme - 1][self.on_color] += 1
-                self.device.update_csv(SCHEME_COLORS_INDEX + self.device.scheme - 1,0)
-                self.device.scheme_colors[curr_scheme-1][self.on_color] += 1
+                self.device.vars[SCHEME_COLORS_INDEX + self.device.scheme][self.on_color] = str(curr_color_as_int + 1)
+                self.device.update_csv(SCHEME_COLORS_INDEX + self.device.scheme)
+                self.device.scheme_colors[curr_scheme][self.on_color] = str(curr_color_as_int + 1)
                 
             else:
                 #Replace color in scheme with first option
-                self.device.vars[SCHEME_COLORS_INDEX + self.device.scheme - 1][self.on_color] = 0
-                self.device.update_csv(SCHEME_COLORS_INDEX + self.device.scheme - 1,0)
-                self.device.scheme_colors[curr_scheme-1][self.on_color] = 0
-
-
-                
-            """if(self.device.scheme < NUM_SCHEMES):
-                new_val = self.device.scheme + 1
-                self.device.vars[SCHEME_INDEX] = new_val
-                self.device.update_csv(SCHEME_INDEX,new_val)
-                self.device.scheme = new_val
-            else:
-                #Loops back to beginning of macro "list"
-                self.device.vars[SCHEME_INDEX] = 1
-                self.device.update_csv(SCHEME_INDEX,1)
-                self.device.scheme = 1"""
+                self.device.vars[SCHEME_COLORS_INDEX + self.device.scheme][self.on_color] = str(0)
+                self.device.update_csv(SCHEME_COLORS_INDEX + self.device.scheme)
+                self.device.scheme_colors[curr_scheme][self.on_color] = str(0)
 
 """Class for automatic/audio mode of device"""
 class AutoMode(Mode):
@@ -251,7 +243,9 @@ class Device:
         while(j<NUM_SCHEMES):
             k=0
             while(k<NUM_COL_PER_SCHEME):
-                var_list[SCHEME_COLORS_INDEX+j][k] = int(var_list[SCHEME_COLORS_INDEX+j][k])
+                #var_list[SCHEME_COLORS_INDEX+j][k] = int(var_list[SCHEME_COLORS_INDEX+j][k])
+                var_list[SCHEME_COLORS_INDEX+j][k] = str(var_list[SCHEME_COLORS_INDEX+j][k])
+
                 k+=1
             j+=1
         
@@ -288,7 +282,7 @@ class Device:
     # param[in]  spot     number of var in CSV list
     # param[in]  val      new val or var
     #
-    def update_csv(self,spot,val):
+    def update_csv(self,spot):
         #print("Update CSV called")
         print("New values:")
         print("Macro #: " + str(self.vars[MACRO_INDEX]))
@@ -296,18 +290,37 @@ class Device:
         print("Speed: " + str(self.vars[SPEED_INDEX]))
         print("Scheme #: " + str(self.vars[SCHEME_INDEX]))
 
-        """i = 0
-        while(i < NUM_SCHEMES):"""
-            
+        #print the color schemes
+        i=0
+        while(i < NUM_SCHEMES):
+            print(self.vars[SCHEME_COLORS_INDEX + i])
+            i += 1
 
+        fail = True
+        while(fail):
+            try:
+                with open(csv_filename,'w',newline='') as f:
+                    w = csv.writer(f)
 
-        with open(csv_filename,'w',newline='') as f:
-            w = csv.writer(f, delimiter=' ')
+                    """for item in self.vars:
+                        try:
+                            w.writerow(item.split(" ,"))
+                        except:
+                            w.writerow([item])"""
 
-            for item in self.vars:
-                w.writerow([item])
+                    i = 0
+                    while(i < SCHEME_COLORS_INDEX + NUM_SCHEMES):
+                        if(i < SCHEME_COLORS_INDEX):
+                            w.writerow([self.vars[i]])
+                        else:
+                            w.writerow(self.vars[i])
+                        i += 1
+                        
+                f.close()
+                fail = False
                 
-        f.close()
+            except:
+                continue
 
     #
     # Func to change value in csv when var is changed

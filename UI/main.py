@@ -9,6 +9,7 @@ import time
 
 
 def main():
+    
     device = states.Device()
 
     while True:
