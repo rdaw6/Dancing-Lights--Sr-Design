@@ -246,16 +246,29 @@ class Device:
             self.mode = self.automode
             self.special_macro = 1
 
-        with open(csv_filename, newline='') as f:
-            r = csv.reader(f)
-            var_list = list(r)
-            i=0
-            for line in var_list:
-                if((i < SCHEME_COLORS_INDEX) and (i != MACRO_INDEX)):
-                    var_list[i] = int(line[0])
-                else:
-                    var_list[i] = line
-                i+=1
+        failed_open = True
+        while(failed_open):
+            try:
+                f = open(csv_filename, newline='')
+                r = csv.reader(f)
+                failed_open = False
+            except:
+                continue
+            
+        var_list = list(r)
+        print("Length of var list: " + str(len(var_list)))
+        if(len(var_list) != (SCHEME_COLORS_INDEX + NUM_SCHEMES)):
+           self.fill_csv()
+           r = csv.reader(f)
+           var_list = list(r)
+           print("Var list: " + str(var_list))
+        i=0
+        for line in var_list:
+            if((i < SCHEME_COLORS_INDEX) and (i != MACRO_INDEX)):
+                var_list[i] = int(line[0])
+            else:
+                var_list[i] = line
+            i+=1
 
         #Ensure macro number is stored as integer
         var_list[MACRO_INDEX][0] = int(var_list[MACRO_INDEX][0])
@@ -377,16 +390,45 @@ class Device:
         
         return val
 
-    def print_csv_vals(self):
-        print("Printing csv vals: ")
-        f = open('variables.csv') #Read in CSV file
-        r = csv.reader(f)
-        vars = list(r) # Store CSV as list
-        f.close()
+    #Function to fill CSV with random values if it's missing some for some reason
+    def fill_csv(self):
+        print("Filling CSV")
 
-        # printing the list using loop
-        print("Printing list")
-        for i in range(len(vars)):
-            print(vars[i])
+        random_scheme = []
+
+        #Append as many zeros as there are colors in a scheme
+        i = 0
+        while(i < NUM_COL_PER_SCHEME):
+            random_scheme.append(0)
+            i+=1
+
+        #Create a list holding vals for macros,brightness,speed,and scheme number
+        random_csv_vals = [[0,0],1,1,0,]
+        j = 0
+        #Loop through number of schemes
+        while(j < NUM_SCHEMES):
+            #Append the random scheme
+            random_csv_vals.append(random_scheme)
+            j+=1
+
+        fail = True
+        while(fail):
+            try:
+                with open(csv_filename,'w',newline='') as f:
+                    w = csv.writer(f)
+
+                    i = 0
+                    while(i < SCHEME_COLORS_INDEX + NUM_SCHEMES):
+                        if((i < SCHEME_COLORS_INDEX) and (i != MACRO_INDEX)):
+                            w.writerow([random_csv_vals[i]])
+                        else:
+                            w.writerow(random_csv_vals[i])
+                        i += 1
+                        
+                f.close()
+                fail = False
+                
+            except:
+                continue
         
 
