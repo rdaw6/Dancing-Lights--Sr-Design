@@ -17,7 +17,7 @@ SCHEME_EDIT_PIN = 2
 NEXT_COLOR_PIN = 3
 CHANGE_COLOR_PIN = 9
 
-SCHEME_EDIT_LED_PIN = 20
+SCHEME_EDIT_LED_PIN = 13
 
 board = Arduino('COM3')
 
@@ -29,6 +29,8 @@ SCHEME_SEL = board.digital[SCHEME_SEL_PIN]
 SCHEME_EDIT = board.digital[SCHEME_EDIT_PIN]
 NEXT_COLOR_SEL = board.digital[NEXT_COLOR_PIN]
 CHANGE_COLOR_SEL = board.digital[CHANGE_COLOR_PIN]
+
+SCHEME_EDIT_LED = board.digital[SCHEME_EDIT_LED_PIN]
 
 
 MODE_SEL.mode = pyfirmata.INPUT
@@ -181,10 +183,12 @@ class Controls():
         self.change_color_pb_prev_state = button_state
         return False
 
-    def led_on(self,pin_num):
-        print("Turning LED " + str(pin_num) + " on.")
+    def scheme_edit_led_on(self):
+        print("Turning LED on.")
+        SCHEME_EDIT_LED.write(1)
 
-    def led_off(self,pin_num):
-        print("Turning LED " + str(pin_num) + " off.")
+    def scheme_edit_led_off(self):
+        print("Turning LED off.")
+        SCHEME_EDIT_LED.write(0)
 
 

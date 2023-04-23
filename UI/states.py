@@ -11,8 +11,6 @@ SPEED_INDEX = 2
 SCHEME_INDEX = 3
 SCHEME_COLORS_INDEX = 4 #Index of the first scheme's list of colors
 
-SCHEME_EDIT_LED_PIN = 20
-
 NUM_MACROS = 4
 NUM_SCHEMES = 4
 NUM_COL_PER_SCHEME = 4
@@ -49,8 +47,6 @@ class ManMode(Mode):
     #se = scheme edit
     def toggle_seMode(self):
         
-        global SCHEME_EDIT_LED_PIN
-
         #Switching device to scheme edit mode so set special_macro to 2
         self.device.set_special_macro(2)
 
@@ -58,7 +54,7 @@ class ManMode(Mode):
         self.device.mode = self.device.semode
 
         #Turn on scheme edit led
-        self.device.controls.led_on(SCHEME_EDIT_LED_PIN)
+        self.device.controls.scheme_edit_led_on()
 
 
     def check_controls(self):
@@ -136,7 +132,7 @@ class SchemeEditMode(ManMode):
         global SCHEME_EDIT_LED_PIN
 
         #Switching edit mode back to normal manual mode so turn off led
-        self.device.controls.led_off(SCHEME_EDIT_LED_PIN)
+        self.device.controls.scheme_edit_led_off()
 
         #Set pb prev states to zero in case it was pressed during mode switch
         self.device.controls.next_color_pb_prev_state = 0
@@ -155,7 +151,7 @@ class SchemeEditMode(ManMode):
         global SCHEME_EDIT_LED_PIN
         
         #Mode switch has been flicked so turn off led
-        self.device.controls.led_off(SCHEME_EDIT_LED_PIN)
+        self.device.controls.scheme_edit_led_off()
 
         #Going to automatic mode so set special_macro to 1
         self.device.set_special_macro(1)
