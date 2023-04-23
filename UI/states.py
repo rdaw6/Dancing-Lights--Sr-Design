@@ -4,6 +4,8 @@ import time
 
 """CSV = (0)MACRO_SEL,(1)BRIGHT_CTRL,(2)SPEED_CTRL,(3)SCHEME_SEL,(4)COLOR_SEL"""
 MACRO_INDEX = 0
+SPECIAL_MACRO_COL_INDEX = 1
+
 BRIGHT_INDEX = 1
 SPEED_INDEX = 2
 SCHEME_INDEX = 3
@@ -38,13 +40,21 @@ class ManMode(Mode):
 
     """method for toggling modes"""
     def toggle_mode(self):
+        #Switching to automatic mode so set special_macro to 1
+        self.device.set_special_macro(1)
+
+        #Switch device to automatic mode
         self.device.mode = self.device.automode
 
     #se = scheme edit
     def toggle_seMode(self):
         
         global SCHEME_EDIT_LED_PIN
-        
+
+        #Switching device to scheme edit mode so set special_macro to 2
+        self.device.set_special_macro(2)
+
+        #Switch device mode to scheme edit
         self.device.mode = self.device.semode
 
         #Turn on scheme edit led
@@ -59,16 +69,16 @@ class ManMode(Mode):
         #Check macro select button
         if(self.device.controls.check_macro_sel_pb()):
             #Button has been released
-            if(self.device.macro < NUM_MACROS):
+            if(self.device.macro < (NUM_MACROS - 1)):
                 new_val = self.device.macro + 1
-                self.device.vars[MACRO_INDEX] = new_val
-                self.device.update_csv(MACRO_INDEX)
+                self.device.vars[MACRO_INDEX][0] = new_val
+                self.device.update_csv()
                 self.device.macro = new_val
             else:
                 #Loops back to beginning of macro "list"
-                self.device.vars[MACRO_INDEX] = 1
-                self.device.update_csv(MACRO_INDEX)
-                self.device.macro = 1
+                self.device.vars[MACRO_INDEX][0] = 0
+                self.device.update_csv()
+                self.device.macro = 0
             #print("Macro number changed")
                 
         
@@ -77,7 +87,7 @@ class ManMode(Mode):
 
         if((brt_val != 0) and (brt_val != int(self.device.brightness))):
             self.device.vars[BRIGHT_INDEX] = brt_val
-            self.device.update_csv(BRIGHT_INDEX)
+            self.device.update_csv()
             self.device.brightness = brt_val
 
         time.sleep(0.1)
@@ -88,7 +98,7 @@ class ManMode(Mode):
         if((speed_val != 0) and (speed_val != int(self.device.speed))):
             #print("New speed value!")
             self.device.vars[SPEED_INDEX] = speed_val
-            self.device.update_csv(SPEED_INDEX)
+            self.device.update_csv()
             self.device.speed = speed_val
 
         #Check scheme select button
@@ -98,12 +108,12 @@ class ManMode(Mode):
             if(self.device.scheme < NUM_SCHEMES - 1):
                 new_val = self.device.scheme + 1
                 self.device.vars[SCHEME_INDEX] = new_val
-                self.device.update_csv(SCHEME_INDEX)
+                self.device.update_csv()
                 self.device.scheme = new_val
             else:
                 #Loops back to beginning of macro "list"
                 self.device.vars[SCHEME_INDEX] = 0
-                self.device.update_csv(SCHEME_INDEX)
+                self.device.update_csv()
                 self.device.scheme = 0
 
         #Check edit mode pb
@@ -135,6 +145,9 @@ class SchemeEditMode(ManMode):
         #Set on color back to zero so when we re-enter edit mode we can start back at beginning
         self.on_color = 0
 
+        #Going to manual so special macro is 0
+        self.device.set_special_macro(0)
+
         #Go to manual mode
         self.device.mode = self.device.manmode
 
@@ -143,6 +156,9 @@ class SchemeEditMode(ManMode):
         
         #Mode switch has been flicked so turn off led
         self.device.controls.led_off(SCHEME_EDIT_LED_PIN)
+
+        #Going to automatic mode so set special_macro to 1
+        self.device.set_special_macro(1)
 
         #go to automatic mode
         self.device.mode = self.device.automode
@@ -180,13 +196,13 @@ class SchemeEditMode(ManMode):
             if(curr_color < (NUM_COLOR_OPTS - 1)):
                 #Replace color with next option
                 self.device.vars[SCHEME_COLORS_INDEX + self.device.scheme][self.on_color] = curr_color + 1
-                self.device.update_csv(SCHEME_COLORS_INDEX + self.device.scheme)
+                self.device.update_csv()
                 self.device.scheme_colors[curr_scheme][self.on_color] = curr_color + 1
                 
             else:
                 #Replace color in scheme with first option
                 self.device.vars[SCHEME_COLORS_INDEX + self.device.scheme][self.on_color] = 0
-                self.device.update_csv(SCHEME_COLORS_INDEX + self.device.scheme)
+                self.device.update_csv()
                 self.device.scheme_colors[curr_scheme][self.on_color] = 0
 
 """Class for automatic/audio mode of device"""
@@ -199,6 +215,10 @@ class AutoMode(Mode):
 
     """method for toggling modes"""
     def toggle_mode(self):
+        #Going to manual mode so set special_macro to 0
+        self.device.set_special_macro(0)
+
+        #Set device mode to manual
         self.device.mode = self.device.manmode
 
         #whenever manual mode is activated, need to check all controls
@@ -221,24 +241,30 @@ class Device:
 
 
         """This will actually need to be set based on which way mode switch is flipped"""
-        self.mode = self.manmode #for now, default to manual mode
-
-        """with open(csv_filename, newline='') as f:
-            r = csv.reader(f)
-            var_list = list(r)"""
-
+        #self.mode = self.manmode #for now, default to manual mode
+        if self.controls.check_mode_switch() == 1:
+            #Manual Mode
+            self.mode = self.manmode
+            self.special_macro = 0
+        else:
+            self.mode = self.automode
+            self.special_macro = 1
 
         with open(csv_filename, newline='') as f:
             r = csv.reader(f)
             var_list = list(r)
             i=0
             for line in var_list:
-                if(i < SCHEME_COLORS_INDEX):
+                if((i < SCHEME_COLORS_INDEX) and (i != MACRO_INDEX)):
                     var_list[i] = int(line[0])
                 else:
                     var_list[i] = line
                 i+=1
 
+        #Ensure macro number is stored as integer
+        var_list[MACRO_INDEX][0] = int(var_list[MACRO_INDEX][0])
+
+        #Ensure the colors in the schemes are stored as ints in the var_list
         j=0
         while(j<NUM_SCHEMES):
             k=0
@@ -248,13 +274,25 @@ class Device:
 
                 k+=1
             j+=1
+
+        #Set special_macros to correct value based on starting mode
+        if self.mode.mode == "A":
+            #Automatic mode is special_macro 0
+            self.special_macro = 1
+            var_list[MACRO_INDEX][SPECIAL_MACRO_COL_INDEX] = 1
+        else:
+            #If it's not in automatic mode at start, it's in manual - no special_macro
+            self.special_macro = 0
+            var_list[MACRO_INDEX][SPECIAL_MACRO_COL_INDEX] = 0
+        #Update csv either way - done at bottom of function
         
         print("Var list after init: ")
         print(var_list)
 
         self.vars = var_list
-        
-        self.macro = var_list[MACRO_INDEX]
+
+        #assign the device variables (Note: Speical macro already assigned above)
+        self.macro = var_list[MACRO_INDEX][0]
         self.brightness = var_list[BRIGHT_INDEX]
         self.speed = var_list[SPEED_INDEX]
         self.scheme = var_list[SCHEME_INDEX]
@@ -267,6 +305,8 @@ class Device:
             index += 1
 
         print(self.scheme_colors)
+
+        self.update_csv()
         
         f.close()
         
@@ -282,7 +322,7 @@ class Device:
     # param[in]  spot     number of var in CSV list
     # param[in]  val      new val or var
     #
-    def update_csv(self,spot):
+    def update_csv(self):
         #print("Update CSV called")
         print("New values:")
         print("Macro #: " + str(self.vars[MACRO_INDEX]))
@@ -304,7 +344,7 @@ class Device:
 
                     i = 0
                     while(i < SCHEME_COLORS_INDEX + NUM_SCHEMES):
-                        if(i < SCHEME_COLORS_INDEX):
+                        if((i < SCHEME_COLORS_INDEX) and (i != MACRO_INDEX)):
                             w.writerow([self.vars[i]])
                         else:
                             w.writerow(self.vars[i])
@@ -316,7 +356,16 @@ class Device:
             except:
                 continue
 
+    #Func to switch the device's special macro val
     #
+    #param[in]  val   New value for special_macro
+    #
+    def set_special_macro(self,val):
+        self.special_macro = val
+        self.vars[MACRO_INDEX][SPECIAL_MACRO_COL_INDEX] = val
+        self.update_csv()
+
+    
     # Func to change value in csv when var is changed
     #
     # param[in]  spot     number of var in CSV list
