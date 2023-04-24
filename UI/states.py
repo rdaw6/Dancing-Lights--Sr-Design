@@ -18,7 +18,9 @@ NUM_COL_PER_SCHEME = 4
 #Number of colors options available when editing color in scheme
 NUM_COLOR_OPTS = 6 
 
-csv_filename = "variables.csv"
+#csv_filename = "variables.csv"
+csv_filename = "C:\\Users\\LattePanda\\Documents\\Dancing-Lights--Sr-Design\\UI\\variables.csv" #For batch file
+
 
 class Mode:
     #Insert code here
