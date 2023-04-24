@@ -6,22 +6,47 @@ from pathlib import Path
 macro_select = None
 Brightness = None
 speed = None
-colors = [(51, 0, 0), (0, 51, 0), (0, 0, 51)]
-pixel_num = [100, 100, 100, 100]
+color_scheme = None
+#color_options = [(0, 0, 0), (0, 0, 51), (0, 51, 0), (0, 51, 51), (51, 0, 0), (51, 0, 51), (51, 17, 0), (51, 17, 51), (51, 34, 0), (51, 34, 51), (51, 51, 0), (51, 51, 51)]
+color_options  = [(51, 0, 0),   # dark red
+                 (51, 17, 0),  # dark brown
+                 (51, 34, 0),  # dark olive
+                 (0, 51, 0),   # dark green
+                 (0, 51, 51),  # dark cyan
+                 (0, 0, 51),   # dark blue
+                 (51, 0, 51),# dark magenta
+                 (51, 51, 51)]  #white
+
+
+colors = [0, 0, 0, 0]
+scheme_1 = None
+scheme_2 = None
+scheme_3 = None
+scheme_4 = None
+pixel_num = [50, 100, 100, 100]
 # Function to load variables from CSV file
 def load_variables_from_csv(csv_file_path):
-    global macro_select, Brightness, speed
+    global macro_select, Brightness, speed, color_scheme, colors, scheme_1, scheme_2, scheme_3, scheme_4, color_options
 
-    variable_names = ["macro_select", "Brightness", "speed"]
+    variable_names = ["macro_select", "Brightness", "speed", "color_scheme", "scheme_1", "scheme_2", "scheme_3", "scheme_4"]
     with open(csv_file_path, 'r') as csvfile:
         reader = csv.reader(csvfile)
         for i, row in enumerate(reader):
             variable_name = variable_names[i]
-            value = row[0]
-            if variable_name == "macro_select" or variable_name == "Brightness":
-                value = int(value)
+            if i < 4:
+                value = row[0]
+                print(value)
             else:
-                value = float(value)
+                v1 = int(row[0])
+                v2 = int(row[1])
+                v3 = int(row[2])
+                v4 = int(row[3])
+                print(v1, v2, v3, v4)
+
+            if variable_name == "macro_select" or variable_name == "Brightness" or variable_name == "color_scheme":
+                value = int(value)
+            elif variable_name == "speed":
+                value = int(value)
 
             if variable_name == "macro_select":
                 macro_select = value
@@ -29,6 +54,22 @@ def load_variables_from_csv(csv_file_path):
                 Brightness = value
             elif variable_name == "speed":
                 speed = value
+            elif variable_name == "color_scheme":
+                color_scheme = value
+            elif variable_name == "scheme_1":
+                scheme_1 = [v1, v2, v3, v4]
+            elif variable_name == "scheme_2":
+                scheme_2 = [v1, v2, v3, v4]
+            elif variable_name == "scheme_3":
+                scheme_3 = [v1, v2, v3, v4]
+            elif variable_name == "scheme_4":
+                scheme_4 = [v1, v2, v3, v4]
+    schemes = [scheme_1, scheme_2, scheme_3, scheme_4]
+    scheme = schemes[color_scheme]
+    for i in range(0, 4):
+        r, g, b = color_options[scheme[i]]
+        colors[i] = (r*Brightness, g*Brightness, b*Brightness)
+    print(f"macro: {macro_select}, Brightness: {Brightness}, speed: {speed}, scheme: {color_scheme}, colors: {colors}")
 
 
 def monitor_csv_file(csv_file_path):
@@ -49,10 +90,6 @@ load_variables_from_csv(csv_file_path)
 
 # Start monitoring and updating variables
 #monitor_csv_file(csv_file_path)
-
-
-
-
 
 
 #number from 1 to 5, 5 is brightest
