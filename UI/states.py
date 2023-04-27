@@ -1,3 +1,11 @@
+#Author: Emma Klinzing
+#Class: ECE Capstone Design
+#   Team: SD23P04: Dancing Lights
+#Last Modified: 04/25/2023
+
+#This file manages the member functions for the device and its different modes
+#   It also calls the controls fuctions relevant to each mode of the device
+
 import csv
 import controls
 import time
@@ -20,11 +28,11 @@ NUM_COL_PER_SCHEME = 4
 #Number of colors options available when editing color in scheme
 NUM_COLOR_OPTS = 6 
 
-#csv_filename = "variables.csv"
+#csv_filename = "variables.csv" - FIX THIS PATH IF THE FILE MOVES ON THE LATTEPANDA (This path is only correct for our prototype's LattePanda)
 csv_filename = "C:\\Users\\LattePanda\\Desktop\\Dancing-Lights--Sr-Design-main\\Macros\\variables.csv"
 
+#Class object for prototype modes to be sub-classes of
 class Mode:
-    #Insert code here
     #Code that occurs for both state types
     def scan(self):
         #Code
@@ -36,7 +44,11 @@ class ManMode(Mode):
 
     """Constructor"""
     def __init__(self, device):
+        
+        #Attaches device to this mode (so we can manage device vars, etc from this class obj)
         self.device = device
+
+        #Set device's mode to manual ("M")
         self.mode = 'M'
 
     """method for toggling modes"""
@@ -47,9 +59,9 @@ class ManMode(Mode):
         #Switch device to automatic mode
         self.device.mode = self.device.automode
 
-    #se = scheme edit
+    #Function to switch to Scheme Edit Mode
     def toggle_seMode(self):
-        
+
         global SCHEME_EDIT_LED_PIN
 
         #Switching device to scheme edit mode so set special_macro to 2
@@ -59,9 +71,10 @@ class ManMode(Mode):
         self.device.mode = self.device.semode
 
         #Turn on scheme edit led
-        self.device.controls.led_on(SCHEME_EDIT_LED_PIN)
+        self.device.controls.led_on()
 
 
+    #Function to check the relevant controls for manual mode
     def check_controls(self):
         """Check MS, AS, BC, SC, SS, SE"""
         
@@ -70,51 +83,95 @@ class ManMode(Mode):
         #Check macro select button
         if(self.device.controls.check_macro_sel_pb()):
             #Button has been released
+
             if(self.device.macro < (NUM_MACROS - 1)):
+                #Device is not on last macro in the list, so incremement macro number by 1
                 new_val = self.device.macro + 1
+                
+                #Save new value to the device object's vars list
                 self.device.vars[MACRO_INDEX][0] = new_val
+                
+                #Update the CSV with new val
                 self.device.update_csv()
+                
+                #Update the device obj's member variable for macro num
                 self.device.macro = new_val
+                
             else:
-                #Loops back to beginning of macro "list"
+                #Device is on last macro in the list, so loop back to the first
+
+                #Update device obj's var list with new macro 
                 self.device.vars[MACRO_INDEX][0] = 0
+
+                #Update CSV with new macro number
                 self.device.update_csv()
+
+                #Update device's member var for macro num
                 self.device.macro = 0
-            #print("Macro number changed")
                 
         
         #check brightness control (should return int between 1 and 5)
         brt_val = self.device.controls.check_bright_ctrl()
 
+        #Check if the brightness value has changed by comparing it to device obj's member var for brightness
         if((brt_val != 0) and (brt_val != int(self.device.brightness))):
+            #Brightness has changed and isn't an invalid number (0)
+            
+            #Update device obj's vars list
             self.device.vars[BRIGHT_INDEX] = brt_val
+            
+            #Updates CSV with new val
             self.device.update_csv()
+            
+            #Update device obj's member var for brightness 
             self.device.brightness = brt_val
 
+        #Sleep to give sys time to catch up (after analog read)
         time.sleep(0.1)
 
         #check speed control (should return int between 1 and 10)
         speed_val = self.device.controls.check_speed_ctrl()
 
         if((speed_val != 0) and (speed_val != int(self.device.speed))):
-            #print("New speed value!")
+            #Speed value has changed and isn't invalid input (0)
+
+            #Update device obj's vars list
             self.device.vars[SPEED_INDEX] = speed_val
+
+            #Update CSV with new val for speed
             self.device.update_csv()
+
+            #Update device obj's member var for speed
             self.device.speed = speed_val
 
         #Check scheme select button
         if(self.device.controls.check_scheme_sel_pb()):
             print("Editing scheme number")
             #Button has been released
+            
             if(self.device.scheme < NUM_SCHEMES - 1):
+                #Not on last scheme in list, so increment scheme num val by 1
                 new_val = self.device.scheme + 1
+
+                #Update device obj's var list with new val for scheme num
                 self.device.vars[SCHEME_INDEX] = new_val
+
+                #Update CSV with new val for scheme num
                 self.device.update_csv()
+
+                #Update device obj's member val for scheme num 
                 self.device.scheme = new_val
+                
             else:
-                #Loops back to beginning of macro "list"
+                #On last scheme num in scheme list, so loop back to beginning
+
+                #Update device obj's var list with new scheme num
                 self.device.vars[SCHEME_INDEX] = 0
+
+                #Updte CSV
                 self.device.update_csv()
+
+                #Update device var's member var for scheme num
                 self.device.scheme = 0
 
         #Check edit mode pb
@@ -137,7 +194,7 @@ class SchemeEditMode(ManMode):
         global SCHEME_EDIT_LED_PIN
 
         #Switching edit mode back to normal manual mode so turn off led
-        self.device.controls.led_off(SCHEME_EDIT_LED_PIN)
+        self.device.controls.led_off()
 
         #Set pb prev states to zero in case it was pressed during mode switch
         self.device.controls.next_color_pb_prev_state = 0
@@ -156,7 +213,7 @@ class SchemeEditMode(ManMode):
         global SCHEME_EDIT_LED_PIN
         
         #Mode switch has been flicked so turn off led
-        self.device.controls.led_off(SCHEME_EDIT_LED_PIN)
+        self.device.controls.led_off()
 
         #Going to automatic mode so set special_macro to 1
         self.device.set_special_macro(1)
@@ -165,45 +222,65 @@ class SchemeEditMode(ManMode):
         self.device.mode = self.device.automode
 
     def check_controls(self):
-        #print("Checking edit mode controls")
         
-        #print("Check scheme select button")
         if(self.device.controls.check_edit_mode_pb()):
+            #EDIT_SEL PB was pressed so toggle back to manual mode
             self.toggle_seMode()
 
-        #check color number button
-        if(self.device.controls.check_next_color_pb()):
-            #Make sure we're not going out of range of num colors in scheme
-            #subtract once since our first color indexes at 0
+        #check COLOR_SEL button
+        if(self.device.controls.check_change_color_pb()):
+            
+            #COLOR_SEL button was pressed so move to the next color in the current scheme
             print("Edit next color in scheme")
+            
             if(self.on_color < (NUM_COL_PER_SCHEME - 1)):
+                #Not on the last color in the scheme, so incremenet by one
                 self.on_color += 1
+                
             else:
-                #Loop back to beginning of list
-                self.on_color = 0 #on_color indexes from 0
+                #On last color in scheme so loop back to beginning of list
+                self.on_color = 0 
                 
 
-        #check color selection button
-        if(self.device.controls.check_change_color_pb()):
+        #check NEXT_COLOR_SEL pushbutton
+        if(self.device.controls.check_next_color_pb()):
+
+            #NEXT_COLOR_SEL was pressed
             print("Changing a color")
             print("Color #: " + str(self.on_color))
-            #Button has been released
-            print("Change to next color options")
+            print("Change to next color option")
 
+            #Get the current scheme of the device (as an integer/index value)
             curr_scheme = self.device.scheme
+            
             print("Current Scheme: " + str(curr_scheme))
+
+            #Get the current color of the color number we're editing in the scheme
             curr_color = self.device.scheme_colors[curr_scheme][self.on_color]
-            #if(int(self.device.scheme_colors[curr_scheme-1][self.on_color]) < (NUM_COLOR_OPTS - 1)):
+            
             if(curr_color < (NUM_COLOR_OPTS - 1)):
-                #Replace color with next option
+                #Not on last color in list of color options so increment current color in current scheme by 1
+                #Replace color with the next color option
+
+                #Update the device obj's var list
                 self.device.vars[SCHEME_COLORS_INDEX + self.device.scheme][self.on_color] = curr_color + 1
+
+                #Update CSV
                 self.device.update_csv()
+
+                #Update the device obj's member var for the scheme (list of each scheme color's color index)
                 self.device.scheme_colors[curr_scheme][self.on_color] = curr_color + 1
                 
             else:
-                #Replace color in scheme with first option
+                #On last value in list of color options, so loop back to beginning
+
+                #Update device obj's vars list with new value for the color in the scheme
                 self.device.vars[SCHEME_COLORS_INDEX + self.device.scheme][self.on_color] = 0
+
+                #Update CSV
                 self.device.update_csv()
+
+                #Update device obj's member func for the current scheme and it's current color
                 self.device.scheme_colors[curr_scheme][self.on_color] = 0
 
 """Class for automatic/audio mode of device"""
@@ -211,11 +288,16 @@ class AutoMode(Mode):
     
     """Constructor"""
     def __init__(self, device):
+
+        #Attach device obj to this mode so we can edit the device's variables, etc
         self.device = device
+
+        #Set device's mode to automatic/audio
         self.mode = 'A'
 
     """method for toggling modes"""
     def toggle_mode(self):
+        
         #Going to manual mode so set special_macro to 0
         self.device.set_special_macro(0)
 
@@ -225,44 +307,57 @@ class AutoMode(Mode):
         #whenever manual mode is activated, need to check all controls
         self.device.mode.check_controls()
 
-    def play_audio(self):
-        global lights
-        macros.audio(lights)
-
 
 """Class for the device itself"""
 class Device:
 
-    #The user interface device
+    #The user interface device (The Lattepanda and attached controls)
 
     def __init__(self):
-        #Assign controls object
+        #Assign controls object (attaches the controls to this device so we can call those member funcs)
         self.controls = controls.Controls(self)
         
-        #There are three possible states: manual and automatic
+        #There are three possible states: manual, automatic/audio, and scheme edit -> declare those class objects
         self.automode = AutoMode(self)
         self.manmode = ManMode(self)
         self.semode = SchemeEditMode(self)
 
-
-        """This will actually need to be set based on which way mode switch is flipped"""
-        #self.mode = self.manmode #for now, default to manual mode
+        #Upon initialization of this device, determine the mode (manual or automatic) based on the MODE_SEL switch
+        #Can't start in SCHEME_EDIT mode
         if self.controls.check_mode_switch() == 1:
             #Manual Mode
+
+            #Set device's var for mode to manual 
             self.mode = self.manmode
+
+            #Set var for special_macro to 0 (since we're not in automatic or scheme edit mode)
             self.special_macro = 0
+            
         else:
+            #In automatic/audio mode
+
+            #Set device's var for mode to automatic.audio
             self.mode = self.automode
+
+            #Set var for SPECIAL_MACRO to 1 since we're in automatic mode
             self.special_macro = 1
 
+        #Read in the CSV values (See design notebook for the format)
         with open(csv_filename, newline='') as f:
             r = csv.reader(f)
             var_list = list(r)
-            i=0
+
+            i = 0
+            #Loop through the lines of the CSV
             for line in var_list:
                 if((i < SCHEME_COLORS_INDEX) and (i != MACRO_INDEX)):
+                    #The current row has only one value
+                    #Read in the row as a value
                     var_list[i] = int(line[0])
+                    
                 else:
+                    #The current row has multiple columns of values
+                    #Read in the row as a list
                     var_list[i] = line
                 i+=1
 
@@ -275,25 +370,28 @@ class Device:
             k=0
             while(k<NUM_COL_PER_SCHEME):
                 var_list[SCHEME_COLORS_INDEX+j][k] = int(var_list[SCHEME_COLORS_INDEX+j][k])
-                #var_list[SCHEME_COLORS_INDEX+j][k] = str(var_list[SCHEME_COLORS_INDEX+j][k])
-
                 k+=1
             j+=1
 
         #Set special_macros to correct value based on starting mode
         if self.mode.mode == "A":
-            #Automatic mode is special_macro 0
+            #Automatic mode is special_macro 1
             self.special_macro = 1
+
+            #Update the device's var list with the proper SPECIAL_MACRO value
             var_list[MACRO_INDEX][SPECIAL_MACRO_COL_INDEX] = 1
+            
         else:
             #If it's not in automatic mode at start, it's in manual - no special_macro
             self.special_macro = 0
+
+            #Update the device's var list with the peroper SPECIAL_MACRO value
             var_list[MACRO_INDEX][SPECIAL_MACRO_COL_INDEX] = 0
-        #Update csv either way - done at bottom of function
-        
+                    
         print("Var list after init: ")
         print(var_list)
 
+        #Assign the read in CSV values to the device's var list 
         self.vars = var_list
 
         #assign the device variables (Note: Speical macro already assigned above)
@@ -302,8 +400,11 @@ class Device:
         self.speed = var_list[SPEED_INDEX]
         self.scheme = var_list[SCHEME_INDEX]
 
+        #Create a list where the first scheme's color list is the first entry
+        #Assign that list of lists (with one entry) to the device's scheme_colors var
         self.scheme_colors = [var_list[SCHEME_COLORS_INDEX]]
-        
+
+        #Go through and append all the other schemes' color lists to the device's scheme_colors var (list of lists)
         index = 1
         while(index < NUM_SCHEMES):
             self.scheme_colors.append(var_list[SCHEME_COLORS_INDEX + index])
@@ -311,13 +412,17 @@ class Device:
 
         print(self.scheme_colors)
 
+        #Update the CSV to reflect the device's var list 
         self.update_csv()
-        
+
+        #Close the CSV
         f.close()
         
 
     """method for toggling mode switch"""
     def toggle_mode(self):
+        #Set the device's toggle mode func to call the toggle_mode func for whatever mode it's in
+        #this way we can call the same func for any mode but get the right action for that specific mode
         print("Toggling mode")
         self.mode.toggle_mode()
 
@@ -341,24 +446,38 @@ class Device:
             print(self.vars[SCHEME_COLORS_INDEX + i])
             i += 1
 
+        #Keep trying to open the CSV until it works
         fail = True
         while(fail):
             try:
                 with open(csv_filename,'w',newline='') as f:
                     w = csv.writer(f)
 
+                    #Loop through all the entries in teh device's vars list
                     i = 0
                     while(i < SCHEME_COLORS_INDEX + NUM_SCHEMES):
-                        if((i < SCHEME_COLORS_INDEX) and (i != MACRO_INDEX)):
-                            w.writerow([self.vars[i]])
-                        else:
-                            w.writerow(self.vars[i])
-                        i += 1
                         
+                        if((i < SCHEME_COLORS_INDEX) and (i != MACRO_INDEX)):
+                            
+                            #Current list entry is an integer -> write it to the CSV properly
+                            w.writerow([self.vars[i]])
+                            
+                        else:
+                            
+                            #Current list entry is a list -> write it to the CSV properly
+                            w.writerow(self.vars[i])
+
+                        #Increment the index
+                        i += 1
+
+                #Close the CSV    
                 f.close()
+
+                #Was able to successfully write to the CSV so end the loop by setting fail to false
                 fail = False
                 
             except:
+                #Failed so try again
                 continue
 
     #Func to switch the device's special macro val
@@ -366,8 +485,14 @@ class Device:
     #param[in]  val   New value for special_macro
     #
     def set_special_macro(self,val):
+
+        #Update the device's var for SPECIAL_MACRO
         self.special_macro = val
+
+        #Update the device's var list entry for SPECIAL_MACRO
         self.vars[MACRO_INDEX][SPECIAL_MACRO_COL_INDEX] = val
+
+        #Update the CSV
         self.update_csv()
 
     
@@ -381,21 +506,9 @@ class Device:
         f = open(csv_filename) #Read in CSV file
         r = csv.reader(f)
         vars = list(r) # Store CSV as list
-        val = vars[spot]
-        f.close()
+        val = vars[spot] #Read the CSV value for the requested spot from the list
+        f.close() #Close the CSV
         
-        return val
+        return val #Return requested val
 
-    def print_csv_vals(self):
-        print("Printing csv vals: ")
-        f = open('variables.csv') #Read in CSV file
-        r = csv.reader(f)
-        vars = list(r) # Store CSV as list
-        f.close()
-
-        # printing the list using loop
-        print("Printing list")
-        for i in range(len(vars)):
-            print(vars[i])
-        
 

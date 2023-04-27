@@ -1,3 +1,11 @@
+#Author: Emma Klinzing
+#Class: ECE Capstone Design
+#   Team: SD23P04: Dancing Lights
+#Last Modified: 04/25/2023
+
+#This file manages the current mode of the device based on the MODE_SEL switch
+#   It also calls the relevant general functions for checking controls within a mode
+
 #Import necessary files
 import csv
 import states
