@@ -1,3 +1,11 @@
+#Author: Emma Klinzing
+#Class: ECE Capstone Design
+#   Team: SD23P04: Dancing Lights
+#Last Modified: 04/25/2023
+
+#This file manages the current mode of the device based on the MODE_SEL switch
+#   It also calls the relevant general functions for checking controls within a mode
+
 #Import necessary files
 import csv
 import states
@@ -9,41 +17,50 @@ import time
 
 
 def main():
-    
+    #Create a device object (Represents LattePanda) (Attaches Controls and Modes to obj)
     device = states.Device()
 
     while True:
         #Run loop at 100Hz
         time.sleep(0.1)
 
-        #Check the mode toggle switch
-        #Let's say 1 is manual and 0 is automatic
+        #Ensure the device obj is in the correct mode by checking MODE_SEL control
+        #Check the mode toggle switch (1 is manual, 1 is automatic)
         if device.controls.check_mode_switch() == 1:
-            
-            #Should be in manual mode
+            #MODE_SEL is in manual position
+
+            #Check if device obj mode is currently automatic
             if device.mode.mode == 'A':
+                #device currently in automatic mode
+
+                #toggle to manual
                 device.toggle_mode()
 
         else:
-            #Should be in automatic mode
+            #MODE_SEL switch in automatic position
+            
             if device.mode.mode != 'A':
+                #device is in manual or edit mode
+
+                #toggle to automatic
                 device.toggle_mode()
         
         
-        #Check which mode the device is in to check input
+        #Check necessary controls based on mode of device
         if device.mode.mode == "M":
+            #Device is in manual mode
 
             """Check MS, AS, BC, SC, SS, SE"""
             device.mode.check_controls()
             
         elif device.mode.mode == "E":
+            #Device is in scheme edit mode
 
             """Check CS, R, G, B"""
             device.mode.check_controls()
             
         else:
-
-            """Check MS"""
+            #Device is in automatic mode (no controls to check)
             print("Automatic mode")
 
 
